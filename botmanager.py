@@ -46,6 +46,17 @@ async def unloadGemini(ctx):
 async def reloadGemini(ctx):
     await bot.add_cog(GeminiAgent(bot))
 
+@bot.command()
+async def pfp(ctx, user: discord.User):
+    avatar_url = user.avatar.url
+
+    Myembed = discord.Embed(title=f"Profile picture of {user}")
+    Myembed.set_image(url=avatar_url)
+    await ctx.send(embed=Myembed)
+
+
+    
+
 
 async def startcogs():
     await bot.add_cog(GeminiAgent(bot))
