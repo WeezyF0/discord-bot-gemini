@@ -55,6 +55,16 @@ async def pfp(ctx, user: discord.User):
     Myembed.set_image(url=avatar_url)
     await ctx.send(embed=Myembed)
 
+@bot.command()
+async def shutdown(ctx):
+    if ctx.author.id == int(defaultConfig.DISCORD_OWNER_ID):
+        await ctx.send("Shutting down bot!")
+        await bot.close()
+    else:
+        await ctx.send("He thinks he's him xD")
+
+
+
 
     
 
