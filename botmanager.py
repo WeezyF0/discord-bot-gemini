@@ -34,6 +34,7 @@ async def help(ctx):
     MyEmbed.set_thumbnail(url = "https://i.imgur.com/O250HqL.jpg")
     MyEmbed.add_field(name = "!q", value = "This command allows you to communicate with Gemini AI Bot on the Server. Please wrap your questions with quotation marks.", inline = False)
     MyEmbed.add_field(name = "!dm", value = "This command allows you to private message the Gemini AI Bot.", inline = False)
+    MyEmbed.add_field(name = "!pfp", value = "This command allows you to view the profile picture of the mentioned user.", inline = False)
     await ctx.send(embed = MyEmbed)
 
 @bot.command()
