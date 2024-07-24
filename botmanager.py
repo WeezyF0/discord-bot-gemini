@@ -4,13 +4,31 @@ import utils.DiscordUtil as discordUtil
 import asyncio
 import discord
 from cogs.GeminiCog import GeminiAgent
-
+import requests
 from discord.ext import commands
+from bs4 import BeautifulSoup
+import re
+from urllib.parse import urljoin
+
+DISCORD_MAX_MESSAGE_LENGTH=2000
+
+
 owner_id= defaultConfig.DISCORD_OWNER_ID
 intents= discord.Intents.all()
 intents.message_content= True
 intents.members= True
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
+
+async def send_message_in_chunks(ctx, response):
+    message = ""
+    for chunk in response:
+        message += chunk
+        while len(message) > DISCORD_MAX_MESSAGE_LENGTH:
+            extra_message = message[DISCORD_MAX_MESSAGE_LENGTH:]
+            await ctx.send(message[:DISCORD_MAX_MESSAGE_LENGTH])
+            message = extra_message
+    if len(message) > 0:
+        await ctx.send(message)
 
 
 
@@ -35,6 +53,7 @@ async def help(ctx):
     MyEmbed.add_field(name = "!q", value = "This command allows you to communicate with Gemini AI Bot on the Server. Please wrap your questions with quotation marks.", inline = False)
     MyEmbed.add_field(name = "!dm", value = "This command allows you to private message the Gemini AI Bot.", inline = False)
     MyEmbed.add_field(name = "!pfp", value = "This command allows you to view the profile picture of the mentioned user.", inline = False)
+    MyEmbed.add_field(name = "!dtu", value = "This command allows you to view the 5 latest notices on the DTU website", inline = False)
     await ctx.send(embed = MyEmbed)
 
 @bot.command()
@@ -57,13 +76,67 @@ async def pfp(ctx, user: discord.User):
 
 @bot.command()
 async def shutdown(ctx):
-    if ctx.author.id == int(defaultConfig.DISCORD_OWNER_ID):
+    if ctx.author.id == int(defaultConfig.DISCORD_OWNER_ID): #basically the is_me function of DiscordUtil.py
         await ctx.send("Shutting down bot!")
         await bot.close()
     else:
         await ctx.send("He thinks he's him xD")
 
 
+
+@bot.command()
+async def dtu(ctx):
+    url = 'https://dtu.ac.in/'
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        response.encoding = 'utf-8'
+        soup = BeautifulSoup(response.content, 'html.parser')
+        latest_news_section = soup.find('div', class_='latest_tab')
+        
+        if latest_news_section:
+            notices = latest_news_section.find_all('li')[:5]
+            
+            if notices:
+                def clean_text(text):
+                    text = re.sub(r'\s+', ' ', text).strip()  # Replace multiple spaces with a single space
+                    return text
+                
+                def extract_links(li_element):
+                    links = []
+                    for a_tag in li_element.find_all('a', href=True):
+                        link_text = a_tag.get_text(strip=True)
+                        link_url = a_tag['href']
+                        # Handle relative URLs
+                        if not link_url.startswith('http'):
+                            link_url = urljoin(url, link_url)
+                        links.append(f"[{link_text}]({link_url})")
+                    return '\n'.join(links)  # Use new lines to separate links
+                
+                # Extract and clean notice texts and links
+                notices_text = []
+                for index, notice in enumerate(notices):
+                    # Convert &nbsp; to regular spaces
+                    notice_text = notice.get_text(separator=' ').replace('\xa0', ' ')
+                    # Extract links
+                    links_text = extract_links(notice)
+                    # Clean and format text
+                    cleaned_text = clean_text(notice_text)
+                    notice_entry = f"**{index + 1}.** {cleaned_text}"
+                    if links_text:
+                        notice_entry += f"\n{links_text}"  # Use new lines to separate links
+                    notices_text.append(notice_entry)
+
+                # Join all notice texts with new lines
+                notices_text = '\n\n'.join(notices_text)
+                # Send in chunks if necessary
+                await send_message_in_chunks(ctx, [notices_text])
+            else:
+                await ctx.send('No notices found.')
+        else:
+            await ctx.send('Latest news section not found.')
+    else:
+        await ctx.send('Failed to fetch information from the website.')
 
 
     
