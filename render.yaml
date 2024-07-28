@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: discord-bot
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python botmanager.py"
+    healthCheckPath: "/healthz"
+    envVars:
+      - key: PORT
+        value: "10000"
