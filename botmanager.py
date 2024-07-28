@@ -1,5 +1,5 @@
 import configs.DefaultConfig as defaultConfig
-
+import os
 import utils.DiscordUtil as discordUtil
 import asyncio
 import discord
@@ -9,6 +9,8 @@ from discord.ext import commands
 from bs4 import BeautifulSoup
 import re
 from urllib.parse import urljoin
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 DISCORD_MAX_MESSAGE_LENGTH=2000
 
@@ -18,6 +20,24 @@ intents= discord.Intents.all()
 intents.message_content= True
 intents.members= True
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
+
+#for deployment on render
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/healthz':
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'OK')
+
+def run_health_check_server():
+    port = int(os.getenv('PORT', '10000'))
+    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    server.serve_forever()
+
+def start_health_check_server():
+    health_server_thread = threading.Thread(target=run_health_check_server)
+    health_server_thread.daemon = True
+    health_server_thread.start()
 
 async def send_message_in_chunks(ctx, response):
     message = ""
@@ -145,7 +165,13 @@ async def dtu(ctx):
 async def startcogs():
     await bot.add_cog(GeminiAgent(bot))
 
-asyncio.run(startcogs())
-bot.run(defaultConfig.DISCORD_SDK)
+
+if __name__ == "__main__":
+    # Start the health check server
+    start_health_check_server()
+    
+    # Start the bot
+    asyncio.run(startcogs())
+    bot.run(defaultConfig.DISCORD_SDK)
 
 
