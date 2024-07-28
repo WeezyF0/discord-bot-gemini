@@ -2,6 +2,9 @@ import configs.DefaultConfig as defaultConfig
 import utils.DiscordUtil as discordUtil
 from discord.ext import commands
 import google.generativeai as genai
+import discord
+import asyncio
+
 
 genai.configure(api_key=defaultConfig.GEMINI_SDK)
 DISCORD_MAX_MESSAGE_LENGTH=2000
@@ -28,7 +31,9 @@ class GeminiAgent(commands.Cog):
     @commands.command()
     async def q(self, ctx, question):
         try:
-            response= self.gemini_generate_content(question)
+            async with ctx.typing():
+                response = self.gemini_generate_content(question)
+                await asyncio.sleep(2)
             await self.send_message_in_chunks(ctx, response)
         except Exception as e:
             return PLEASE_TRY_AGAIN_ERROR_MESSAGE + str(e)
@@ -36,7 +41,10 @@ class GeminiAgent(commands.Cog):
     @commands.command()
     async def dm(self, ctx):
         dmchannel = await ctx.author.create_dm()
-        await dmchannel.send("Wsg, How may i assist u today?")
+        async with dmchannel.typing():
+                await asyncio.sleep(2) 
+        await dmchannel.send("Wsg, How may I assist you today?")
+
     def gemini_generate_content(self, content):
         try:
             return self.model.generate_content(content, stream=True)
