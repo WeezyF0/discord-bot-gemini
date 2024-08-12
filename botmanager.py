@@ -5,12 +5,14 @@ import asyncio
 import discord
 from cogs.GeminiCog import GeminiAgent
 import requests
-from discord.ext import commands
+from discord.ext import commands, tasks
 from bs4 import BeautifulSoup
 import re
 from urllib.parse import urljoin
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
+
+
 
 DISCORD_MAX_MESSAGE_LENGTH=2000
 
@@ -103,9 +105,13 @@ async def shutdown(ctx):
         await ctx.send("He thinks he's him xD")
 
 
+channel_ids= [1265651058076811314, 1265654608454221987, 1264863488954601494]
 
-@bot.command()
-async def dtu(ctx):
+last_known_notices = None
+
+
+
+async def check_and_send_notices(channel):
     url = 'https://dtu.ac.in/'
     response = requests.get(url)
     
@@ -118,11 +124,15 @@ async def dtu(ctx):
             notices = latest_news_section.find_all('li')[:5]
             
             if notices:
+                global last_known_notices
+                current_notices_text = []
+
                 def clean_text(text):
-                    text = re.sub(r'\s+', ' ', text).strip()  # Replace multiple spaces with a single space
-                    return text
+                    """Clean and format text by removing extra spaces."""
+                    return re.sub(r'\s+', ' ', text).strip()
                 
                 def extract_links(li_element):
+                    """Extract and format links from a list item."""
                     links = []
                     for a_tag in li_element.find_all('a', href=True):
                         link_text = a_tag.get_text(strip=True)
@@ -134,32 +144,53 @@ async def dtu(ctx):
                     return '\n'.join(links)  # Use new lines to separate links
                 
                 # Extract and clean notice texts and links
-                notices_text = []
                 for index, notice in enumerate(notices):
-                    # Convert &nbsp; to regular spaces
                     notice_text = notice.get_text(separator=' ').replace('\xa0', ' ')
-                    # Extract links
                     links_text = extract_links(notice)
-                    # Clean and format text
                     cleaned_text = clean_text(notice_text)
                     notice_entry = f"**{index + 1}.** {cleaned_text}"
                     if links_text:
-                        notice_entry += f"\n{links_text}"  # Use new lines to separate links
-                    notices_text.append(notice_entry)
-
+                        notice_entry += f"\n{links_text}"  # Append links below the notice
+                    current_notices_text.append(notice_entry)
+                
                 # Join all notice texts with new lines
-                notices_text = '\n\n'.join(notices_text)
-                # Send in chunks if necessary
-                await send_message_in_chunks(ctx, [notices_text])
+                current_notices_text = '\n\n'.join(current_notices_text)
+                
+                # Check if the notices have changed
+                if current_notices_text != last_known_notices:
+                    last_known_notices = current_notices_text
+                    await send_message_to_channels(current_notices_text)
+                else:
+                    print("No changes detected in the notices.")
             else:
-                await ctx.send('No notices found.')
+                await channel.send('No notices found.')
         else:
-            await ctx.send('Latest news section not found.')
+            await channel.send('Latest news section not found.')
     else:
-        await ctx.send('Failed to fetch information from the website.')
+        await channel.send('Failed to fetch information from the website.')
 
 
-    
+
+async def send_message_to_channels(text):
+    """Send the text to all channels in the channel_ids list."""
+    for channel_id in channel_ids:
+        channel = bot.get_channel(channel_id)
+        if channel:
+            await send_message_in_chunks(channel, text)
+
+
+
+@tasks.loop(hours=1)
+async def check_website_for_changes():
+    await check_and_send_notices(None)  # We no longer need to pass a specific channel here
+
+@check_website_for_changes.before_loop
+async def before_check_website_for_changes():
+    await bot.wait_until_ready()
+
+# Start the loop
+check_website_for_changes.start()
+
 
 
 async def startcogs():
