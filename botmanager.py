@@ -57,6 +57,8 @@ async def send_message_in_chunks(ctx, response):
 @bot.event
 async def on_ready():
     print("Bot is online...")
+    # Start the loop
+    check_website_for_changes.start()
 
 @bot.event
 async def on_member_join(member):
@@ -188,8 +190,7 @@ async def check_website_for_changes():
 async def before_check_website_for_changes():
     await bot.wait_until_ready()
 
-# Start the loop
-check_website_for_changes.start()
+
 
 
 
