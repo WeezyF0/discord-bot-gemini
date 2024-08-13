@@ -154,7 +154,7 @@ async def check_and_send_notices(channel):
                         notice_entry += f"\n{links_text}"  # Append links below the notice
                     current_notices_text.append(notice_entry)
                 
-                # Join all notice texts with new lines
+                # Join all notice texts
                 current_notices_text = '\n\n'.join(current_notices_text)
                 
                 # Check if the notices have changed
@@ -183,7 +183,7 @@ async def send_message_to_channels(text):
 
 @tasks.loop(hours=1)
 async def check_website_for_changes():
-    await check_and_send_notices(None)  # We no longer need to pass a specific channel here
+    await check_and_send_notices(None) 
 
 @check_website_for_changes.before_loop
 async def before_check_website_for_changes():
@@ -198,7 +198,6 @@ async def startcogs():
 
 
 if __name__ == "__main__":
-    # Start the health check server
     start_health_check_server()
     
     # Start the bot
