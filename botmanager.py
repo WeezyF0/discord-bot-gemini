@@ -129,11 +129,9 @@ async def check_and_send_notices(channel):
                 current_notices_text = []
 
                 def clean_text(text):
-                    """Clean and format text by removing extra spaces."""
                     return re.sub(r'\s+', ' ', text).strip()
                 
                 def extract_links(li_element):
-                    """Extract and format links from a list item."""
                     links = []
                     for a_tag in li_element.find_all('a', href=True):
                         link_text = a_tag.get_text(strip=True)
@@ -173,7 +171,7 @@ async def check_and_send_notices(channel):
 
 
 async def send_message_to_channels(text):
-    """Send the text to all channels in the channel_ids list."""
+    #text to channels list
     for channel_id in channel_ids:
         channel = bot.get_channel(channel_id)
         if channel:
