@@ -11,6 +11,7 @@ import re
 from urllib.parse import urljoin
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import aiohttp
 
 
 
@@ -114,59 +115,62 @@ last_known_notices = None
 
 async def check_and_send_notices(channel):
     url = 'https://dtu.ac.in/'
-    response = requests.get(url)
     
-    if response.status_code == 200:
-        response.encoding = 'utf-8'
-        soup = BeautifulSoup(response.content, 'html.parser')
-        latest_news_section = soup.find('div', class_='latest_tab')
-        
-        if latest_news_section:
-            notices = latest_news_section.find_all('li')[:5]
-            
-            if notices:
-                global last_known_notices
-                current_notices_text = []
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:  # Use `.get()` for the GET request
 
-                def clean_text(text):
-                    return re.sub(r'\s+', ' ', text).strip()
+            if response.status == 200:  # Status code in aiohttp is `response.status`, not `response.status_code`
+                response_text = await response.text()  # Use `.text()` to get the content
+                soup = BeautifulSoup(response_text, 'html.parser')
+                latest_news_section = soup.find('div', class_='latest_tab')
                 
-                def extract_links(li_element):
-                    links = []
-                    for a_tag in li_element.find_all('a', href=True):
-                        link_text = a_tag.get_text(strip=True)
-                        link_url = a_tag['href']
-                        # Handle relative URLs
-                        if not link_url.startswith('http'):
-                            link_url = urljoin(url, link_url)
-                        links.append(f"[{link_text}]({link_url})")
-                    return '\n'.join(links)  # Use new lines to separate links
-                
-                # Extract and clean notice texts and links
-                for index, notice in enumerate(notices):
-                    notice_text = notice.get_text(separator=' ').replace('\xa0', ' ')
-                    links_text = extract_links(notice)
-                    cleaned_text = clean_text(notice_text)
-                    notice_entry = f"**{index + 1}.** {cleaned_text}"
-                    if links_text:
-                        notice_entry += f"\n{links_text}"  # Append links below the notice
-                    current_notices_text.append(notice_entry)
-                
-                # Join all notice texts
-                current_notices_text = '\n\n'.join(current_notices_text)
-                
-                # Check if the notices have changed
-                if current_notices_text != last_known_notices:
-                    last_known_notices = current_notices_text
-                    await send_message_to_channels(current_notices_text)
+                if latest_news_section:
+                    notices = latest_news_section.find_all('li')[:5]
+                    
+                    if notices:
+                        global last_known_notices
+                        current_notices_text = []
+
+                        def clean_text(text):
+                            return re.sub(r'\s+', ' ', text).strip()  # Whitespace, newlines, and trailing spaces.
+                        
+                        def extract_links(li_element):
+                            links = []
+                            for a_tag in li_element.find_all('a', href=True):
+                                link_text = a_tag.get_text(strip=True)
+                                link_url = a_tag['href']
+                                # Handle relative URLs
+                                if not link_url.startswith('http'):
+                                    link_url = urljoin(url, link_url)
+                                links.append(f"[{link_text}]({link_url})")
+                            return '\n'.join(links)  # Use new lines to separate links
+                        
+                        # Extract and clean notice texts and links
+                        for index, notice in enumerate(notices):
+                            notice_text = notice.get_text(separator=' ').replace('\xa0', ' ')
+                            links_text = extract_links(notice)
+                            cleaned_text = clean_text(notice_text)
+                            notice_entry = f"**{index + 1}.** {cleaned_text}"
+                            if links_text:
+                                notice_entry += f"\n{links_text}"  # Append links below the notice
+                            current_notices_text.append(notice_entry)
+                        
+                        # Join all notice texts
+                        current_notices_text = '\n\n'.join(current_notices_text)
+                        
+                        # Check if the notices have changed
+                        if current_notices_text != last_known_notices:
+                            last_known_notices = current_notices_text
+                            await send_message_to_channels(current_notices_text)
+                        else:
+                            print("No changes detected in the notices.")
+                    else:
+                        await channel.send('No notices found.')
                 else:
-                    print("No changes detected in the notices.")
+                    await channel.send('Latest news section not found.')
             else:
-                await channel.send('No notices found.')
-        else:
-            await channel.send('Latest news section not found.')
-    else:
-        await channel.send('Failed to fetch information from the website.')
+                await channel.send('Failed to fetch information from the website.')
+
 
 
 
