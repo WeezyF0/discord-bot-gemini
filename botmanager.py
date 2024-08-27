@@ -12,10 +12,12 @@ from urllib.parse import urljoin
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import aiohttp
+import logging
 
 
 
 DISCORD_MAX_MESSAGE_LENGTH=2000
+logging.basicConfig(level=logging.INFO)
 
 
 owner_id= defaultConfig.DISCORD_OWNER_ID
@@ -57,7 +59,7 @@ async def send_message_in_chunks(ctx, response):
 
 @bot.event
 async def on_ready():
-    print("Bot is online...")
+    logging.info("Bot is online...")
     # Start the loop
     check_website_for_changes.start()
 
@@ -185,7 +187,10 @@ async def send_message_to_channels(text):
 
 @tasks.loop(hours=1)
 async def check_website_for_changes():
-    await check_and_send_notices(None) 
+    try:
+        await check_and_send_notices(None) 
+    except Exception as e:
+        logging.error(f"Error in website check: {e}") 
 
 @check_website_for_changes.before_loop
 async def before_check_website_for_changes():
@@ -203,7 +208,11 @@ if __name__ == "__main__":
     start_health_check_server()
     
     # Start the bot
-    asyncio.run(startcogs())
+    # Start the bot
+    bot.loop.run_until_complete(startcogs())
     bot.run(defaultConfig.DISCORD_SDK)
+
+
+
 
 
