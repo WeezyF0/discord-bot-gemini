@@ -200,9 +200,11 @@ async def startcogs():
     await bot.add_cog(GeminiAgent(bot))
 
 
+async def main():
+    await startcogs()
+    await bot.start(defaultConfig.DISCORD_SDK)
+
 if __name__ == "__main__":
     start_health_check_server()
+    asyncio.run(main())
 
-    # Start the bot
-    bot.loop.run_until_complete(startcogs())
-    bot.run(defaultConfig.DISCORD_SDK)
