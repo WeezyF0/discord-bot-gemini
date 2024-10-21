@@ -229,6 +229,10 @@ async def convert(ctx, link: str, format: str = 'a'):
             'verbose': True,  # Add verbose logging
             'nocheckcertificate': True,
             'geo-bypass': True,
+            'geo-bypass-country': 'US',  # Example for US-based geo-bypass
+            'force_generic_extractor': True,
+
+
         }
     else:
         ydl_opts = {
