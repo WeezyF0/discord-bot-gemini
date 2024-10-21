@@ -13,6 +13,8 @@ import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import aiohttp
 import logging
+import yt_dlp
+import os
 
 
 DISCORD_MAX_MESSAGE_LENGTH = 2000
@@ -194,6 +196,55 @@ async def dtu(ctx):
     except Exception as e:
         logging.error(f"Error in website check: {e}")
         await ctx.send("An error occurred while checking the website.")
+
+
+@bot.command()
+async def convert(ctx, link: str, format: str = 'a'):
+    dir = "tmp/downloads"
+    
+    # Ensure the directory exists
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    
+    # Change the directory to save the file
+    os.chdir(dir)
+    
+    # Set options based on the chosen format
+    if format == 'a':
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '320',
+            }],
+            'ffmpeg_location': 'ffmpeg.exe',  # Ensure ffmpeg is available
+            'outtmpl': '%(title)s.%(ext)s'
+        }
+    else:
+        ydl_opts = {
+            'format': 'bv*+ba/b',
+            'ffmpeg_location': 'ffmpeg.exe',
+            'outtmpl': '%(title)s.%(ext)s'
+        }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(link, download=True)
+            file_name = ydl.prepare_filename(info)
+            
+            # Send the file if it's an audio download
+            if format == 'a' and os.path.isfile(file_name):
+                if os.path.getsize()< 8*1024*1024:
+                    await ctx.send(file=discord.File(file_name))
+                else:
+                    await ctx.send("Imma figure this out later bro")
+            else:
+                await ctx.send("Download complete! Check your specified folder.")
+    except Exception as e:
+        await ctx.send(f"An error occurred: {e}")
+
+
 
 
 async def startcogs():

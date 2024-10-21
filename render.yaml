@@ -3,7 +3,9 @@ services:
     name: discord-bot
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: |
+      apt-get update && apt-get install -y ffmpeg
+      pip install -r requirements.txt
     startCommand: "python botmanager.py"
     healthCheckPath: "/healthz"
     envVars:
