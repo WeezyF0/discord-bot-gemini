@@ -15,6 +15,11 @@ import aiohttp
 import logging
 import yt_dlp
 import os
+import subprocess
+
+# Locate ffmpeg
+ffmpeg_path = subprocess.getoutput("which ffmpeg")
+print(f"FFmpeg path: {ffmpeg_path}")
 
 
 DISCORD_MAX_MESSAGE_LENGTH = 2000
