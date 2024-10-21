@@ -223,7 +223,7 @@ async def convert(ctx, link: str, format: str = 'a'):
                 'preferredcodec': 'mp3',
                 'preferredquality': '320',
             }],
-            'ffmpeg_location': 'ffmpeg.exe',  # Ensure ffmpeg is available
+            'ffmpeg_location': '/usr/bin/ffmpeg',  # Ensure ffmpeg is available
             'outtmpl': '%(title)s.%(ext)s'
         }
     else:
