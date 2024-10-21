@@ -214,7 +214,7 @@ async def convert(ctx, link: str, format: str = 'a'):
     # Change the directory to save the file
     os.chdir(dir)
     
-    # Set options based on the chosen format
+    
     if format == 'a':
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -223,8 +223,12 @@ async def convert(ctx, link: str, format: str = 'a'):
                 'preferredcodec': 'mp3',
                 'preferredquality': '320',
             }],
-            'ffmpeg_location': '/usr/bin/ffmpeg',  # Ensure ffmpeg is available
-            'outtmpl': '%(title)s.%(ext)s'
+            'ffmpeg_location': '/usr/bin/ffmpeg',  
+            'outtmpl': '%(title)s.%(ext)s',
+            'user-agent': 'Mozilla/5.0',
+            'verbose': True,  # Add verbose logging
+            'nocheckcertificate': True,
+            'geo-bypass': True,
         }
     else:
         ydl_opts = {
@@ -238,7 +242,7 @@ async def convert(ctx, link: str, format: str = 'a'):
             info = ydl.extract_info(link, download=True)
             file_name = ydl.prepare_filename(info)
             
-            # Send the file if it's an audio download
+        
             if format == 'a' and os.path.isfile(file_name):
                 if os.path.getsize()< 8*1024*1024:
                     await ctx.send(file=discord.File(file_name))
