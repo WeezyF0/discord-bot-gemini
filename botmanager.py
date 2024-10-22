@@ -225,11 +225,10 @@ async def convert(ctx, link: str, format: str = 'a'):
             }],
             'ffmpeg_location': '/usr/bin/ffmpeg',  
             'outtmpl': '%(title)s.%(ext)s',
-            'user-agent': 'Mozilla/5.0',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36',
             'verbose': True,  # Add verbose logging
             'nocheckcertificate': True,
             'geo-bypass': True,
-            'geo-bypass-country': 'US',  # Example for US-based geo-bypass
             'force_generic_extractor': True,
 
 
