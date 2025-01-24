@@ -1,7 +1,9 @@
 # discord-bot-gemini
 
 
-A general purpose chatbot created for discord which can answer questions and participate in general conversations with the user. It uses the gemini api to generate responses and sends these responses to the server channel or the dms. 
+A general purpose chatbot created for discord which can answer questions and participate in general conversations with the user. It uses the gemini api to generate responses and sends these responses to the server channel or the dms.
+
+It also fetches recent notices from the DTU Website: https://dtu.ac.in/
 
 Checkout the code in the master branch.
 Currently hosted on Render.
