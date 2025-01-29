@@ -13,13 +13,7 @@ import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import aiohttp
 import logging
-import yt_dlp
 import os
-import subprocess
-
-# Locate ffmpeg
-ffmpeg_path = subprocess.getoutput("which ffmpeg")
-print(f"FFmpeg path: {ffmpeg_path}")
 
 
 DISCORD_MAX_MESSAGE_LENGTH = 2000
@@ -201,60 +195,6 @@ async def dtu(ctx):
     except Exception as e:
         logging.error(f"Error in website check: {e}")
         await ctx.send("An error occurred while checking the website.")
-
-
-@bot.command()
-async def convert(ctx, link: str, format: str = 'a'):
-    dir = "tmp/downloads"
-    
-    # Ensure the directory exists
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    
-    # Change the directory to save the file
-    os.chdir(dir)
-    
-    
-    if format == 'a':
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '320',
-            }],
-            'ffmpeg_location': '/usr/bin/ffmpeg',  
-            'outtmpl': '%(title)s.%(ext)s',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36',
-            'verbose': True,  # Add verbose logging
-            'nocheckcertificate': True,
-            'geo-bypass': True,
-            'force_generic_extractor': True,
-
-
-        }
-    else:
-        ydl_opts = {
-            'format': 'bv*+ba/b',
-            'ffmpeg_location': 'ffmpeg.exe',
-            'outtmpl': '%(title)s.%(ext)s'
-        }
-
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(link, download=True)
-            file_name = ydl.prepare_filename(info)
-            
-        
-            if format == 'a' and os.path.isfile(file_name):
-                if os.path.getsize()< 8*1024*1024:
-                    await ctx.send(file=discord.File(file_name))
-                else:
-                    await ctx.send("Imma figure this out later bro")
-            else:
-                await ctx.send("Download complete! Check your specified folder.")
-    except Exception as e:
-        await ctx.send(f"An error occurred: {e}")
 
 
 
