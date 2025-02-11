@@ -13,7 +13,7 @@ PLEASE_TRY_AGAIN_ERROR_MESSAGE='Message chota kar lodu. Max length 2000 characte
 class GeminiAgent(commands.Cog):
     def __init__(self, bot):
         self.bot= bot
-        self.model= genai.GenerativeModel('gemini-pro')
+        self.model= genai.GenerativeModel('gemini-2.0-flash')
 
     @commands.Cog.listener()
     async def on_message(self, message):
