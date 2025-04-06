@@ -8,12 +8,15 @@ import asyncio
 
 genai.configure(api_key=defaultConfig.GEMINI_SDK)
 DISCORD_MAX_MESSAGE_LENGTH=2000
-PLEASE_TRY_AGAIN_ERROR_MESSAGE='Message chota kar lodu. Max length 2000 characters'
+PLEASE_TRY_AGAIN_ERROR_MESSAGE='Max length 2000 characters'
 
 class GeminiAgent(commands.Cog):
     def __init__(self, bot):
         self.bot= bot
-        self.model= genai.GenerativeModel('gemini-2.0-flash')
+        self.model = genai.GenerativeModel(
+            model_name='gemini-2.5-pro-preview-03-25',
+            system_instruction="You are GAIJ Bot, A general purpose AI chatbot with the job of assisting users and being as friendly as possible. You should be informal and funny and creative in your responses."
+        )
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -67,5 +70,3 @@ class GeminiAgent(commands.Cog):
                 await ctx.send(message)
                 message = extraMessage
             await ctx.send(message)
-
-
