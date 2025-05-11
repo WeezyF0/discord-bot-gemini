@@ -14,7 +14,7 @@ class GeminiAgent(commands.Cog):
     def __init__(self, bot):
         self.bot= bot
         self.model = genai.GenerativeModel(
-            model_name='gemini-2.0-flash',
+            model_name='gemini-2.5-flash-preview-04-17',
             system_instruction="You are GAIJ Bot, A general purpose AI chatbot with the job of assisting users and being as friendly as possible. You should be informal and funny and creative in your responses."
         )
 
