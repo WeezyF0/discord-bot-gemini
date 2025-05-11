@@ -66,11 +66,11 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
-    print("Hello Ji")
+    print("Hello")
     guild = member.guild
     guildname = guild.name
     dmchannel = await member.create_dm()
-    await dmchannel.send(f"Hello bbg, welcome to {guildname}, cg dilwade")
+    await dmchannel.send(f"wassup mamaAAaaa, welcome to {guildname}")
 
 
 @bot.command(aliases=["about"])
@@ -80,7 +80,6 @@ async def help(ctx):
         description="These are the Commands that you can use for this bot. Once you are in a private message with the bot you can interact with it normally without issuing commands",
         color=discord.Color.dark_gold(),
     )
-    MyEmbed.set_thumbnail(url="https://i.imgur.com/O250HqL.jpg")
     MyEmbed.add_field(
         name="!q",
         value="This command allows you to communicate with Gemini AI Bot on the Server. Please wrap your questions with quotation marks.",
@@ -122,7 +121,7 @@ async def shutdown(ctx):
         await ctx.send("Shutting down bot!")
         await bot.close()
     else:
-        await ctx.send("He thinks he's him xD")
+        await ctx.send("Sorry, only the admin can.")
 
 
 last_known_notices = None
